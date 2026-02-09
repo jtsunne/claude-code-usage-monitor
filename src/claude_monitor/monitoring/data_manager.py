@@ -18,6 +18,7 @@ class DataManager:
         cache_ttl: int = 30,
         hours_back: int = 192,
         data_path: Optional[str] = None,
+        session_duration_hours: int = 5,
     ) -> None:
         """Initialize data manager with cache and fetch settings.
 
@@ -25,13 +26,19 @@ class DataManager:
             cache_ttl: Cache time-to-live in seconds
             hours_back: Hours of historical data to fetch
             data_path: Path to data directory
+            session_duration_hours: Duration of each session block in hours
         """
         self.cache_ttl: int = cache_ttl
         self._cache: Optional[Dict[str, Any]] = None
         self._cache_timestamp: Optional[float] = None
 
+        # For weekly plans (session_duration >= 168h), ensure enough historical data
+        if session_duration_hours >= 168:
+            hours_back = max(hours_back, 336)
+
         self.hours_back: int = hours_back
         self.data_path: Optional[str] = data_path
+        self.session_duration_hours: int = session_duration_hours
         self._last_error: Optional[str] = None
         self._last_successful_fetch: Optional[float] = None
 
@@ -60,6 +67,7 @@ class DataManager:
                     quick_start=False,
                     use_cache=False,
                     data_path=self.data_path,
+                    session_duration_hours=self.session_duration_hours,
                 )
 
                 if data is not None:

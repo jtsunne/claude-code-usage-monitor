@@ -17,17 +17,25 @@ class MonitoringOrchestrator:
     """Orchestrates monitoring components following SRP."""
 
     def __init__(
-        self, update_interval: int = 10, data_path: Optional[str] = None
+        self,
+        update_interval: int = 10,
+        data_path: Optional[str] = None,
+        session_duration_hours: int = 5,
     ) -> None:
         """Initialize orchestrator with components.
 
         Args:
             update_interval: Seconds between updates
             data_path: Optional path to Claude data directory
+            session_duration_hours: Duration of each session block in hours
         """
         self.update_interval: int = update_interval
 
-        self.data_manager: DataManager = DataManager(cache_ttl=5, data_path=data_path)
+        self.data_manager: DataManager = DataManager(
+            cache_ttl=5,
+            data_path=data_path,
+            session_duration_hours=session_duration_hours,
+        )
         self.session_monitor: SessionMonitor = SessionMonitor()
 
         self._monitoring: bool = False

@@ -250,6 +250,8 @@ class TestSettings:
         assert settings.time_format == "auto"
         assert settings.theme == "auto"
         assert settings.custom_limit_tokens is None
+        assert settings.weekly_all_models_limit is None
+        assert settings.weekly_sonnet_limit is None
         assert settings.refresh_rate == 10
         assert settings.refresh_per_second == 0.75
         assert settings.reset_hour is None
@@ -261,7 +263,14 @@ class TestSettings:
 
     def test_plan_validator_valid_values(self) -> None:
         """Test plan validator with valid values."""
-        valid_plans: List[str] = ["pro", "max5", "max20", "custom"]
+        valid_plans: List[str] = [
+            "pro",
+            "max5",
+            "max20",
+            "custom",
+            "team_premium",
+            "team_standard",
+        ]
 
         for plan in valid_plans:
             settings = Settings(plan=plan, _cli_parse_args=[])
@@ -274,6 +283,26 @@ class TestSettings:
 
         settings = Settings(plan="Max5", _cli_parse_args=[])
         assert settings.plan == "max5"
+
+    def test_plan_validator_team_premium(self) -> None:
+        """Test plan validator accepts team_premium."""
+        settings = Settings(plan="team_premium", _cli_parse_args=[])
+        assert settings.plan == "team_premium"
+
+    def test_plan_validator_team_standard(self) -> None:
+        """Test plan validator accepts team_standard."""
+        settings = Settings(plan="team_standard", _cli_parse_args=[])
+        assert settings.plan == "team_standard"
+
+    def test_plan_validator_team_premium_case_insensitive(self) -> None:
+        """Test plan validator accepts TEAM_PREMIUM (case insensitive)."""
+        settings = Settings(plan="TEAM_PREMIUM", _cli_parse_args=[])
+        assert settings.plan == "team_premium"
+
+    def test_plan_validator_team_standard_case_insensitive(self) -> None:
+        """Test plan validator accepts TEAM_STANDARD (case insensitive)."""
+        settings = Settings(plan="TEAM_STANDARD", _cli_parse_args=[])
+        assert settings.plan == "team_standard"
 
     def test_plan_validator_invalid_value(self) -> None:
         """Test plan validator with invalid value."""
@@ -379,6 +408,36 @@ class TestSettings:
 
         with pytest.raises(ValueError):
             Settings(reset_hour=24, _cli_parse_args=[])
+
+    def test_weekly_all_models_limit_accepts_positive(self) -> None:
+        """Test weekly_all_models_limit accepts positive values."""
+        settings = Settings(weekly_all_models_limit=200_000, _cli_parse_args=[])
+        assert settings.weekly_all_models_limit == 200_000
+
+    def test_weekly_all_models_limit_rejects_zero(self) -> None:
+        """Test weekly_all_models_limit rejects zero."""
+        with pytest.raises(ValueError):
+            Settings(weekly_all_models_limit=0, _cli_parse_args=[])
+
+    def test_weekly_all_models_limit_rejects_negative(self) -> None:
+        """Test weekly_all_models_limit rejects negative."""
+        with pytest.raises(ValueError):
+            Settings(weekly_all_models_limit=-1, _cli_parse_args=[])
+
+    def test_weekly_sonnet_limit_accepts_positive(self) -> None:
+        """Test weekly_sonnet_limit accepts positive values."""
+        settings = Settings(weekly_sonnet_limit=800_000, _cli_parse_args=[])
+        assert settings.weekly_sonnet_limit == 800_000
+
+    def test_weekly_sonnet_limit_rejects_zero(self) -> None:
+        """Test weekly_sonnet_limit rejects zero."""
+        with pytest.raises(ValueError):
+            Settings(weekly_sonnet_limit=0, _cli_parse_args=[])
+
+    def test_weekly_sonnet_limit_rejects_negative(self) -> None:
+        """Test weekly_sonnet_limit rejects negative."""
+        with pytest.raises(ValueError):
+            Settings(weekly_sonnet_limit=-1, _cli_parse_args=[])
 
     @patch("claude_monitor.core.settings.Settings._get_system_timezone")
     @patch("claude_monitor.core.settings.Settings._get_system_time_format")
@@ -613,6 +672,20 @@ class TestSettings:
         assert namespace.log_file is None
         assert namespace.reset_hour is None
         assert namespace.custom_limit_tokens is None
+        assert namespace.weekly_all_models_limit is None
+        assert namespace.weekly_sonnet_limit is None
+
+    def test_to_namespace_weekly_limits(self) -> None:
+        """Test to_namespace includes weekly limit fields."""
+        settings = Settings(
+            weekly_all_models_limit=200_000,
+            weekly_sonnet_limit=800_000,
+            _cli_parse_args=[],
+        )
+        namespace = settings.to_namespace()
+
+        assert namespace.weekly_all_models_limit == 200_000
+        assert namespace.weekly_sonnet_limit == 800_000
 
 
 class TestSettingsIntegration:

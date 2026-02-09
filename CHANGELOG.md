@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.2.0] - 2026-02-08
+
+### 🆕 New Features
+- **🏢 Team Premium plan support** - Dual limit tracking (All Models + Sonnet Only) with separate progress bars
+- **🏢 Team Standard plan support** - Weekly token limits with 7-day reset periods
+- **📅 Weekly session tracking** - 168-hour (7-day) rolling window for team plans
+- **🎯 Sonnet-only token tracking** - Dedicated tracking for Team Premium's Sonnet-only limit
+- **📊 Dual progress bars** - Team Premium displays both All Models and Sonnet usage simultaneously
+- **⏰ Weekly time format** - "Xd Xh Xm" countdown display for weekly reset periods
+- **📈 Tokens/hour burn rate** - Real-time consumption rate display for team plans
+- **🔧 New CLI arguments** - `--weekly-all-models-limit` and `--weekly-sonnet-limit` for custom team limits
+
+### 📝 Use Cases
+- **Team Premium**: Track dual limits (All Models: 118,750/week, Sonnet: 80,000/week) with separate monitoring
+- **Team Standard**: Monitor weekly usage (23,750 tokens/week) with 7-day reset cycles
+- **Burn Rate Analysis**: View tokens/hour consumption rates for weekly budget planning
+- **Custom Team Limits**: Override default weekly limits for custom team configurations
+
 ## [3.1.0] - 2025-07-23
 
 ### 🆕 New Features
@@ -214,12 +232,12 @@
 - Proper Ctrl+C handling with cursor restoration
 - Terminal settings restoration on exit
 
-[3.0.0]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v3.0.0
-[2.0.0]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v2.0.0
-[1.0.19]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v1.0.19
-[1.0.17]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v1.0.17
-[1.0.16]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v1.0.16
-[1.0.11]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v1.0.11
-[1.0.8]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v1.0.8
-[1.0.7]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v1.0.7
-[1.0.6]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v1.0.6
+[3.0.0]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v3.0.0
+[2.0.0]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v2.0.0
+[1.0.19]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v1.0.19
+[1.0.17]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v1.0.17
+[1.0.16]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v1.0.16
+[1.0.11]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v1.0.11
+[1.0.8]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v1.0.8
+[1.0.7]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v1.0.7
+[1.0.6]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v1.0.6

@@ -3,11 +3,13 @@
 [![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![codecov](https://codecov.io/gh/Maciek-roboblog/Claude-Code-Usage-Monitor/branch/main/graph/badge.svg)](https://codecov.io/gh/Maciek-roboblog/Claude-Code-Usage-Monitor)
+[![codecov](https://codecov.io/gh/jtsunne/claude-code-usage-monitor/branch/main/graph/badge.svg)](https://codecov.io/gh/jtsunne/claude-code-usage-monitor)
+
+> **Note:** This is a fork of [Maciek-roboblog/Claude-Code-Usage-Monitor](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor) with additional features including Team Premium and Team Standard plan support.
 
 A beautiful real-time terminal monitoring tool for Claude AI token usage with advanced analytics, machine learning-based predictions, and Rich UI. Track your token consumption, burn rate, cost analysis, and get intelligent predictions about session limits.
 
-![Claude Token Monitor Screenshot](https://raw.githubusercontent.com/Maciek-roboblog/Claude-Code-Usage-Monitor/main/doc/scnew.png)
+![Claude Token Monitor Screenshot](https://raw.githubusercontent.com/jtsunne/claude-code-usage-monitor/main/doc/scnew.png)
 
 ---
 
@@ -52,7 +54,7 @@ A beautiful real-time terminal monitoring tool for Claude AI token usage with ad
 - **🔄 Real-time monitoring** - Configurable refresh rates (0.1-20 Hz) with intelligent display updates
 - **📊 Advanced Rich UI** - Beautiful color-coded progress bars, tables, and layouts with WCAG-compliant contrast
 - **🤖 Smart auto-detection** - Automatic plan switching with custom limit discovery
-- **📋 Enhanced plan support** - Updated limits: Pro (44k), Max5 (88k), Max20 (220k), Custom (P90-based)
+- **📋 Enhanced plan support** - Updated limits: Pro (44k), Max5 (88k), Max20 (220k), Team Premium (118k weekly), Team Standard (23k weekly), Custom (P90-based)
 - **⚠️ Advanced warning system** - Multi-level alerts with cost and time predictions
 - **💼 Professional Architecture** - Modular design with Single Responsibility Principle (SRP) compliance
 - **🎨 Intelligent theming** - Scientific color schemes with automatic terminal background detection
@@ -103,7 +105,7 @@ claude-monitor  # or cmonitor, ccmonitor for short
 
 ```bash
 # Clone and install from source
-git clone https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor.git
+git clone https://github.com/jtsunne/claude-code-usage-monitor.git
 cd Claude-Code-Usage-Monitor
 uv tool install .
 
@@ -186,8 +188,10 @@ claude-monitor --help
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| --plan | string | custom | Plan type: pro, max5, max20, or custom |
+| --plan | string | custom | Plan type: pro, max5, max20, team_premium, team_standard, or custom |
 | --custom-limit-tokens | int | None | Token limit for custom plan (must be > 0) |
+| --weekly-all-models-limit | int | None | Weekly all-models limit for team_premium (tokens/week) |
+| --weekly-sonnet-limit | int | None | Weekly Sonnet-only limit for team_premium (tokens/week) |
 | --view | string | realtime | View type: realtime, daily, or monthly |
 | --timezone | string | auto | Timezone (auto-detected). Examples: UTC, America/New_York, Europe/London |
 | --time-format | string | auto | Time format: 12h, 24h, or auto |
@@ -208,6 +212,8 @@ claude-monitor --help
 | pro | 19,000 | $18.00           | Claude Pro subscription |
 | max5 | 88,000 | $35.00           | Claude Max5 subscription |
 | max20 | 220,000 | $140.00          | Claude Max20 subscription |
+| team_premium | 118,750 (weekly) | $112.50 | Team Premium ($150/mo), dual tracking |
+| team_standard | 23,750 (weekly) | $22.50 | Team Standard ($30/mo) |
 | custom | P90-based | (default) $50.00 | Auto-detection with ML analysis |
 
 #### Command Aliases
@@ -295,6 +301,15 @@ claude-monitor --plan max20
 
 # Custom plan with explicit token limit
 claude-monitor --plan custom --custom-limit-tokens 100000
+
+# Team Premium plan (weekly limits with dual tracking)
+claude-monitor --plan team_premium
+
+# Team Standard plan (weekly limits)
+claude-monitor --plan team_standard
+
+# Team Premium with custom weekly limits
+claude-monitor --plan team_premium --weekly-all-models-limit 150000
 ```
 
 #### Custom Reset Times
@@ -379,12 +394,16 @@ claude-monitor --log-level WARNING  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 | **pro** | ~19,000         | Claude Pro subscription |
 | **max5** | ~88,000         | Claude Max5 subscription |
 | **max20** | ~220,000        | Claude Max20 subscription |
+| **team_premium** | ~118,750 (weekly) | Team Premium ($150/mo) with dual tracking |
+| **team_standard** | ~23,750 (weekly) | Team Standard ($30/mo) |
 
 #### Advanced Plan Features
 
 - **P90 Analysis**: Custom plan uses 90th percentile calculations from your usage history
 - **Cost Tracking**: Model-specific pricing with cache token calculations
 - **Limit Detection**: Intelligent threshold detection with 95% confidence
+- **Weekly Limits**: Team plans use 7-day rolling windows (168 hours) that reset weekly
+- **Dual Tracking**: Team Premium tracks both All Models and Sonnet-only usage with separate progress bars
 
 
 ## 🚀 What's New in v3.0.0
@@ -534,6 +553,8 @@ The monitor calculates burn rate using sophisticated analysis:
 | **Claude Pro** | 19,000         | $18.00           | 250 | Fixed limit |
 | **Claude Max5** | 88,000         | $35.00           | 1,000 | Fixed limit |
 | **Claude Max20** | 220,000        | $140.00          | 2,000 | Fixed limit |
+| **Team Premium** | 118,750 (weekly) | $112.50 | ~1,500 | Weekly fixed |
+| **Team Standard** | 23,750 (weekly) | $22.50 | ~300 | Weekly fixed |
 | **Custom** | P90-based      | (default) $50.00 | 250+ | Machine learning |
 
 #### Advanced Limit Detection
@@ -857,7 +878,7 @@ For contributors and developers who want to work with the source code:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor.git
+git clone https://github.com/jtsunne/claude-code-usage-monitor.git
 cd Claude-Code-Usage-Monitor
 
 # Install in development mode
@@ -946,7 +967,7 @@ virtualenv venv
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor.git
+git clone https://github.com/jtsunne/claude-code-usage-monitor.git
 cd Claude-Code-Usage-Monitor
 
 # 2. Create virtual environment
@@ -1182,7 +1203,7 @@ A special thanks to our supporters who help keep this project going:
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Maciek-roboblog/Claude-Code-Usage-Monitor&type=Date)](https://www.star-history.com/#Maciek-roboblog/Claude-Code-Usage-Monitor&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=jtsunne/claude-code-usage-monitor&type=Date)](https://www.star-history.com/#jtsunne/claude-code-usage-monitor&Date)
 
 ---
 
@@ -1190,6 +1211,6 @@ A special thanks to our supporters who help keep this project going:
 
 **⭐ Star this repo if you find it useful! ⭐**
 
-[Report Bug](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/issues) • [Request Feature](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/issues) • [Contribute](CONTRIBUTING.md)
+[Report Bug](https://github.com/jtsunne/claude-code-usage-monitor/issues) • [Request Feature](https://github.com/jtsunne/claude-code-usage-monitor/issues) • [Contribute](CONTRIBUTING.md)
 
 </div>

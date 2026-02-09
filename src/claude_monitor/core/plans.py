@@ -16,6 +16,8 @@ class PlanType(Enum):
     MAX5 = "max5"
     MAX20 = "max20"
     CUSTOM = "custom"
+    TEAM_PREMIUM = "team_premium"
+    TEAM_STANDARD = "team_standard"
 
     @classmethod
     def from_string(cls, value: str) -> "PlanType":
@@ -35,6 +37,10 @@ class PlanConfig:
     cost_limit: float
     message_limit: int
     display_name: str
+    sonnet_token_limit: Optional[int] = None
+    session_duration_hours: int = 5
+    is_weekly: bool = False
+    price_monthly: Optional[float] = None
 
     @property
     def formatted_token_limit(self) -> str:
@@ -42,6 +48,11 @@ class PlanConfig:
         if self.token_limit >= 1_000:
             return f"{self.token_limit // 1_000}k"
         return str(self.token_limit)
+
+    @property
+    def is_team_plan(self) -> bool:
+        """Check if this is a team plan."""
+        return self.name in (PlanType.TEAM_PREMIUM.value, PlanType.TEAM_STANDARD.value)
 
 
 PLAN_LIMITS: Dict[PlanType, Dict[str, Any]] = {
@@ -68,6 +79,26 @@ PLAN_LIMITS: Dict[PlanType, Dict[str, Any]] = {
         "cost_limit": 50.0,
         "message_limit": 250,
         "display_name": "Custom",
+    },
+    PlanType.TEAM_PREMIUM: {
+        "token_limit": 118_750,
+        "sonnet_token_limit": 593_750,
+        "cost_limit": 112.5,
+        "message_limit": 1_562,
+        "display_name": "Team Premium",
+        "session_duration_hours": 168,
+        "is_weekly": True,
+        "price_monthly": 150.0,
+    },
+    PlanType.TEAM_STANDARD: {
+        "token_limit": 23_750,
+        "sonnet_token_limit": None,
+        "cost_limit": 22.5,
+        "message_limit": 312,
+        "display_name": "Team Standard",
+        "session_duration_hours": 168,
+        "is_weekly": True,
+        "price_monthly": 30.0,
     },
 }
 
@@ -97,6 +128,10 @@ class Plans:
             cost_limit=data["cost_limit"],
             message_limit=data["message_limit"],
             display_name=data["display_name"],
+            sonnet_token_limit=data.get("sonnet_token_limit"),
+            session_duration_hours=data.get("session_duration_hours", 5),
+            is_weekly=data.get("is_weekly", False),
+            price_monthly=data.get("price_monthly"),
         )
 
     @classmethod
@@ -157,6 +192,33 @@ class Plans:
     def is_valid_plan(cls, plan: str) -> bool:
         """Check whether a given plan name is recognized."""
         return cls.get_plan_by_name(plan) is not None
+
+    @classmethod
+    def is_team_plan(cls, plan: str) -> bool:
+        """Check whether the given plan name is a team plan."""
+        cfg = cls.get_plan_by_name(plan)
+        return cfg.is_team_plan if cfg else False
+
+    @classmethod
+    def get_weekly_plans(cls) -> Dict[PlanType, PlanConfig]:
+        """Return all plans that use weekly reset cycles."""
+        return {
+            pt: cls._build_config(pt)
+            for pt in PLAN_LIMITS
+            if PLAN_LIMITS[pt].get("is_weekly", False)
+        }
+
+    @classmethod
+    def get_session_duration_hours(cls, plan: str) -> int:
+        """Get the session duration in hours for a plan, or default 5."""
+        cfg = cls.get_plan_by_name(plan)
+        return cfg.session_duration_hours if cfg else 5
+
+    @classmethod
+    def get_sonnet_token_limit(cls, plan: str) -> Optional[int]:
+        """Get the sonnet-specific token limit for a plan, or None."""
+        cfg = cls.get_plan_by_name(plan)
+        return cfg.sonnet_token_limit if cfg else None
 
 
 TOKEN_LIMITS: Dict[str, int] = {

@@ -88,11 +88,17 @@ class SessionBlock:
     limit_messages: List[Dict[str, Any]] = field(default_factory=list)
     projection_data: Optional[Dict[str, Any]] = None
     burn_rate_snapshot: Optional[BurnRate] = None
+    sonnet_token_counts: TokenCounts = field(default_factory=TokenCounts)
 
     @property
     def total_tokens(self) -> int:
         """Get total tokens from token_counts."""
         return self.token_counts.total_tokens
+
+    @property
+    def sonnet_total_tokens(self) -> int:
+        """Get total tokens from sonnet models only."""
+        return self.sonnet_token_counts.total_tokens
 
     @property
     def total_cost(self) -> float:
@@ -107,6 +113,18 @@ class SessionBlock:
         else:
             duration = (self.end_time - self.start_time).total_seconds() / 60
         return max(duration, 1.0)
+
+
+def is_sonnet_model(model: str) -> bool:
+    """Check if a model name refers to a Sonnet model.
+
+    Args:
+        model: Raw or normalized model name
+
+    Returns:
+        True if the model is a Sonnet variant
+    """
+    return "sonnet" in model.lower()
 
 
 def normalize_model_name(model: str) -> str:

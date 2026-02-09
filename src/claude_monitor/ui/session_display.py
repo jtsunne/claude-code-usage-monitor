@@ -185,7 +185,115 @@ class SessionDisplayComponent:
         header_manager = HeaderManager()
         screen_buffer.extend(header_manager.create_header(plan, timezone))
 
-        if plan in ["custom", "pro", "max5", "max20"]:
+        if plan in ["team_premium", "team_standard"]:
+            from claude_monitor.core.plans import Plans
+
+            cfg = Plans.get_plan_by_name(plan)
+            display_name = cfg.display_name if cfg else plan
+            price = cfg.price_monthly if cfg else 0
+            cost_limit_p90 = kwargs.get(
+                "cost_limit_p90", cfg.cost_limit if cfg else 50.0
+            )
+            messages_limit_p90 = kwargs.get(
+                "messages_limit_p90", cfg.message_limit if cfg else 250
+            )
+
+            screen_buffer.append("")
+            screen_buffer.append(
+                f"[bold]📊 Weekly Usage Limits[/bold] [dim]({display_name} - ${price:.0f}/mo)[/dim]"
+            )
+            screen_buffer.append(f"[separator]{'─' * 60}[/]")
+
+            # All Models token progress bar
+            token_bar = self._render_wide_progress_bar(usage_percentage)
+            screen_buffer.append(
+                f"📊 [value]All Models:[/]            {token_bar} {usage_percentage:4.1f}%    [value]{tokens_used:,}[/] / [dim]{token_limit:,}[/]"
+            )
+            screen_buffer.append("")
+
+            # Sonnet Only progress bar (team_premium only)
+            if plan == "team_premium":
+                sonnet_tokens_used = kwargs.get("sonnet_tokens_used", 0)
+                sonnet_token_limit = kwargs.get("sonnet_token_limit", 0)
+                sonnet_percentage = (
+                    min(100, percentage(sonnet_tokens_used, sonnet_token_limit))
+                    if sonnet_token_limit > 0
+                    else 0
+                )
+                sonnet_bar = self._render_wide_progress_bar(sonnet_percentage)
+                screen_buffer.append(
+                    f"📊 [value]Sonnet Only:[/]           {sonnet_bar} {sonnet_percentage:4.1f}%    [value]{sonnet_tokens_used:,}[/] / [dim]{sonnet_token_limit:,}[/]"
+                )
+                screen_buffer.append("")
+
+            # Cost usage bar
+            cost_percentage = (
+                min(100, percentage(session_cost, cost_limit_p90))
+                if cost_limit_p90 > 0
+                else 0
+            )
+            cost_bar = self._render_wide_progress_bar(cost_percentage)
+            screen_buffer.append(
+                f"💰 [value]Cost Usage:[/]            {cost_bar} {cost_percentage:4.1f}%    [value]${session_cost:.2f}[/] / [dim]${cost_limit_p90:.2f}[/]"
+            )
+            screen_buffer.append("")
+
+            # Messages usage bar
+            messages_percentage = (
+                min(100, percentage(sent_messages, messages_limit_p90))
+                if messages_limit_p90 > 0
+                else 0
+            )
+            messages_bar = self._render_wide_progress_bar(messages_percentage)
+            screen_buffer.append(
+                f"📨 [value]Messages Usage:[/]        {messages_bar} {messages_percentage:4.1f}%    [value]{sent_messages}[/] / [dim]{messages_limit_p90:,}[/]"
+            )
+            screen_buffer.append(f"[separator]{'─' * 60}[/]")
+
+            # Time to Reset (weekly: Xd Xh Xm format)
+            time_percentage = (
+                percentage(elapsed_session_minutes, total_session_minutes)
+                if total_session_minutes > 0
+                else 0
+            )
+            time_bar = self._render_wide_progress_bar(time_percentage)
+            time_remaining = max(0, total_session_minutes - elapsed_session_minutes)
+            time_left_days = int(time_remaining // (60 * 24))
+            time_left_hours = int((time_remaining % (60 * 24)) // 60)
+            time_left_mins = int(time_remaining % 60)
+            screen_buffer.append(
+                f"⏱️  [value]Time to Reset:[/]        {time_bar} {time_left_days}d {time_left_hours}h {time_left_mins}m"
+            )
+            screen_buffer.append("")
+
+            # Model Distribution
+            if per_model_stats:
+                model_bar = self.model_usage.render(per_model_stats)
+                screen_buffer.append(f"🤖 [value]Model Distribution:[/]   {model_bar}")
+            else:
+                model_bar = self.model_usage.render({})
+                screen_buffer.append(f"🤖 [value]Model Distribution:[/]   {model_bar}")
+            screen_buffer.append(f"[separator]{'─' * 60}[/]")
+
+            # Burn Rate (tokens/hour for weekly plans)
+            burn_rate_per_hour = burn_rate * 60
+            velocity_emoji = VelocityIndicator.get_velocity_emoji(burn_rate)
+            screen_buffer.append(
+                f"🔥 [value]Burn Rate:[/]              [warning]{burn_rate_per_hour:.0f}[/] [dim]tokens/hour[/] {velocity_emoji}"
+            )
+
+            # Cost Rate
+            cost_per_min = (
+                session_cost / max(1, elapsed_session_minutes)
+                if elapsed_session_minutes > 0
+                else 0
+            )
+            cost_per_min_display = CostIndicator.render(cost_per_min)
+            screen_buffer.append(
+                f"💲 [value]Cost Rate:[/]              {cost_per_min_display} [dim]$/min[/]"
+            )
+
+        elif plan in ["custom", "pro", "max5", "max20"]:
             from claude_monitor.core.plans import DEFAULT_COST_LIMIT
 
             cost_limit_p90 = kwargs.get("cost_limit_p90", DEFAULT_COST_LIMIT)

@@ -20,6 +20,7 @@ def analyze_usage(
     use_cache: bool = True,
     quick_start: bool = False,
     data_path: Optional[str] = None,
+    session_duration_hours: int = 5,
 ) -> Dict[str, Any]:
     """
     Main entry point to generate response_final.json.
@@ -35,6 +36,7 @@ def analyze_usage(
         use_cache: Use cached data when available
         quick_start: Use minimal data for quick startup (last 24h only)
         data_path: Optional path to Claude data directory
+        session_duration_hours: Duration of each session block in hours (default 5)
 
     Returns:
         Dictionary with analyzed blocks
@@ -61,7 +63,7 @@ def analyze_usage(
     logger.info(f"Data loaded in {load_time:.3f}s")
 
     start_time = datetime.now()
-    analyzer = SessionAnalyzer(session_duration_hours=5)
+    analyzer = SessionAnalyzer(session_duration_hours=session_duration_hours)
     blocks = analyzer.transform_to_blocks(entries)
     transform_time = (datetime.now() - start_time).total_seconds()
     logger.info(f"Created {len(blocks)} blocks in {transform_time:.3f}s")
@@ -196,6 +198,13 @@ def _create_base_block_dict(block: SessionBlock) -> Dict[str, Any]:
         "costUSD": block.cost_usd,
         "models": block.models,
         "perModelStats": block.per_model_stats,
+        "sonnetTokenCounts": {
+            "inputTokens": block.sonnet_token_counts.input_tokens,
+            "outputTokens": block.sonnet_token_counts.output_tokens,
+            "cacheCreationInputTokens": block.sonnet_token_counts.cache_creation_tokens,
+            "cacheReadInputTokens": block.sonnet_token_counts.cache_read_tokens,
+        },
+        "sonnetTotalTokens": block.sonnet_total_tokens,
         "sentMessagesCount": block.sent_messages_count,
         "durationMinutes": block.duration_minutes,
         "entries": _format_block_entries(block.entries),

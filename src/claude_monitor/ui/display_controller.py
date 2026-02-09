@@ -241,6 +241,10 @@ class DisplayController:
             )
             cost_limit_p90 = percentiles["costs"]["p90"]
             messages_limit_p90 = percentiles["messages"]["p90"]
+        elif Plans.is_team_plan(args.plan):
+            cfg = Plans.get_plan_by_name(args.plan)
+            cost_limit_p90 = cfg.cost_limit if cfg else 50.0
+            messages_limit_p90 = cfg.message_limit if cfg else 250
         else:
             # Use centralized cost limits
             from claude_monitor.core.plans import get_cost_limit
@@ -368,7 +372,7 @@ class DisplayController:
         )
 
         # Build result dictionary
-        return {
+        result = {
             "plan": args.plan,
             "timezone": args.timezone,
             "tokens_used": tokens_used,
@@ -391,6 +395,31 @@ class DisplayController:
             "show_tokens_will_run_out": notifications["show_cost_will_exceed"],
             "original_limit": original_limit,
         }
+
+        # Team plan: extract Sonnet data and apply CLI overrides
+        if Plans.is_team_plan(args.plan):
+            sonnet_tokens_used = active_block.get("sonnetTotalTokens", 0)
+            sonnet_token_limit = Plans.get_sonnet_token_limit(args.plan) or 0
+
+            # Apply CLI override limits
+            weekly_all_override = getattr(args, "weekly_all_models_limit", None)
+            if weekly_all_override:
+                result["token_limit"] = int(weekly_all_override)
+                result["usage_percentage"] = (
+                    percentage(tokens_used, int(weekly_all_override))
+                    if int(weekly_all_override) > 0
+                    else 0
+                )
+                result["tokens_left"] = int(weekly_all_override) - tokens_used
+
+            weekly_sonnet_override = getattr(args, "weekly_sonnet_limit", None)
+            if weekly_sonnet_override:
+                sonnet_token_limit = int(weekly_sonnet_override)
+
+            result["sonnet_tokens_used"] = sonnet_tokens_used
+            result["sonnet_token_limit"] = sonnet_token_limit
+
+        return result
 
     def _calculate_model_distribution(
         self, raw_per_model_stats: Dict[str, Any]

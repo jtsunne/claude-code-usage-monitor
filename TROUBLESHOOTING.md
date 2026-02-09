@@ -190,15 +190,21 @@ pip install pydantic-settings>=2.0.0 numpy>=1.21.0
 
 ### Invalid Plan Configuration
 
-**Error**: `Invalid plan: {value}. Must be one of: pro, max5, max20, custom`
+**Error**: `Invalid plan: {value}. Must be one of: pro, max5, max20, team_premium, team_standard, custom`
 
 **Valid options**:
 ```bash
 # Correct plan names (case-insensitive)
-claude-monitor --plan pro      # 44k tokens
-claude-monitor --plan max5     # 88k tokens
-claude-monitor --plan max20    # 220k tokens
-claude-monitor --plan custom   # P90 auto-detection
+claude-monitor --plan pro              # 44k tokens (5-hour sessions)
+claude-monitor --plan max5             # 88k tokens (5-hour sessions)
+claude-monitor --plan max20            # 220k tokens (5-hour sessions)
+claude-monitor --plan team_premium     # 118k tokens/week (dual tracking)
+claude-monitor --plan team_standard    # 23k tokens/week (weekly reset)
+claude-monitor --plan custom           # P90 auto-detection
+
+# Team plans with custom limits
+claude-monitor --plan team_premium --weekly-all-models-limit 150000
+claude-monitor --plan team_premium --weekly-sonnet-limit 90000
 ```
 
 ### Invalid Theme Settings
@@ -527,7 +533,7 @@ Output from: claude-monitor --debug | head -20
 
 ### Where to Get Help
 
-1. **GitHub Issues**: [Create new issue](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/issues/new)
+1. **GitHub Issues**: [Create new issue](https://github.com/jtsunne/claude-code-usage-monitor/issues/new)
 2. **Email**: [maciek@roboblog.eu](mailto:maciek@roboblog.eu)
 3. **Documentation**: [README.md](README.md)
 
@@ -562,4 +568,4 @@ claude-monitor --version
 
 ---
 
-**Still having issues?** Don't hesitate to [create an issue](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/issues/new) with the **[v3.0.0]** tag in the title!
+**Still having issues?** Don't hesitate to [create an issue](https://github.com/jtsunne/claude-code-usage-monitor/issues/new) with the **[v3.0.0]** tag in the title!

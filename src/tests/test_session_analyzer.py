@@ -25,6 +25,14 @@ class TestSessionAnalyzer:
         assert analyzer.session_duration_hours == 3
         assert analyzer.session_duration == timedelta(hours=3)
 
+    def test_session_analyzer_init_168h_for_team_plans(self) -> None:
+        """Test SessionAnalyzer with 168h duration for team plans."""
+        analyzer = SessionAnalyzer(session_duration_hours=168)
+
+        assert analyzer.session_duration_hours == 168
+        assert analyzer.session_duration == timedelta(hours=168)
+        assert analyzer.session_duration == timedelta(days=7)
+
     def test_transform_to_blocks_empty_list(self) -> None:
         """Test transform_to_blocks with empty entries."""
         analyzer = SessionAnalyzer()
@@ -545,3 +553,183 @@ class TestSessionAnalyzerEdgeCases:
 
         # Should create separate blocks
         assert len(blocks) >= 2
+
+
+class TestSessionAnalyzerSonnetAccumulation:
+    """Tests for Sonnet token accumulation in _add_entry_to_block."""
+
+    def test_sonnet_entry_accumulates_sonnet_tokens(self) -> None:
+        """Sonnet model entries should accumulate in sonnet_token_counts."""
+        analyzer = SessionAnalyzer()
+
+        block = SessionBlock(
+            id="test_block",
+            start_time=datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc),
+            end_time=datetime(2024, 1, 1, 17, 0, tzinfo=timezone.utc),
+            token_counts=TokenCounts(),
+            sonnet_token_counts=TokenCounts(),
+        )
+
+        entry = UsageEntry(
+            timestamp=datetime(2024, 1, 1, 12, 30, tzinfo=timezone.utc),
+            input_tokens=500,
+            output_tokens=250,
+            cache_creation_tokens=100,
+            cache_read_tokens=50,
+            cost_usd=0.01,
+            model="claude-sonnet-4-5-20250929",
+        )
+
+        analyzer._add_entry_to_block(block, entry)
+
+        assert block.sonnet_token_counts.input_tokens == 500
+        assert block.sonnet_token_counts.output_tokens == 250
+        assert block.sonnet_token_counts.cache_creation_tokens == 100
+        assert block.sonnet_token_counts.cache_read_tokens == 50
+        assert block.sonnet_total_tokens == 900
+
+    def test_non_sonnet_entry_does_not_affect_sonnet_counts(self) -> None:
+        """Non-Sonnet entries should not change sonnet_token_counts."""
+        analyzer = SessionAnalyzer()
+
+        block = SessionBlock(
+            id="test_block",
+            start_time=datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc),
+            end_time=datetime(2024, 1, 1, 17, 0, tzinfo=timezone.utc),
+            token_counts=TokenCounts(),
+            sonnet_token_counts=TokenCounts(),
+        )
+
+        entry = UsageEntry(
+            timestamp=datetime(2024, 1, 1, 12, 30, tzinfo=timezone.utc),
+            input_tokens=500,
+            output_tokens=250,
+            model="claude-opus-4-6",
+        )
+
+        analyzer._add_entry_to_block(block, entry)
+
+        assert block.sonnet_total_tokens == 0
+        assert block.token_counts.input_tokens == 500
+
+    def test_mixed_entries_accumulate_correctly(self) -> None:
+        """Mix of Sonnet and non-Sonnet entries should accumulate correctly."""
+        analyzer = SessionAnalyzer()
+
+        block = SessionBlock(
+            id="test_block",
+            start_time=datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc),
+            end_time=datetime(2024, 1, 1, 17, 0, tzinfo=timezone.utc),
+            token_counts=TokenCounts(),
+            sonnet_token_counts=TokenCounts(),
+        )
+
+        # Sonnet entry
+        analyzer._add_entry_to_block(
+            block,
+            UsageEntry(
+                timestamp=datetime(2024, 1, 1, 12, 30, tzinfo=timezone.utc),
+                input_tokens=100,
+                output_tokens=50,
+                model="claude-3-5-sonnet",
+            ),
+        )
+
+        # Opus entry
+        analyzer._add_entry_to_block(
+            block,
+            UsageEntry(
+                timestamp=datetime(2024, 1, 1, 13, 0, tzinfo=timezone.utc),
+                input_tokens=200,
+                output_tokens=100,
+                model="claude-opus-4-6",
+            ),
+        )
+
+        # Another Sonnet entry
+        analyzer._add_entry_to_block(
+            block,
+            UsageEntry(
+                timestamp=datetime(2024, 1, 1, 13, 30, tzinfo=timezone.utc),
+                input_tokens=300,
+                output_tokens=150,
+                model="claude-sonnet-4-5-20250929",
+            ),
+        )
+
+        # All models: 100+200+300 = 600 input, 50+100+150 = 300 output
+        assert block.token_counts.input_tokens == 600
+        assert block.token_counts.output_tokens == 300
+
+        # Sonnet only: 100+300 = 400 input, 50+150 = 200 output
+        assert block.sonnet_token_counts.input_tokens == 400
+        assert block.sonnet_token_counts.output_tokens == 200
+
+
+class TestSessionAnalyzer168hBlocks:
+    """Tests for 168-hour session blocks (team plans)."""
+
+    def test_168h_block_creation(self) -> None:
+        """168h analyzer creates blocks with 7-day span."""
+        analyzer = SessionAnalyzer(session_duration_hours=168)
+
+        entry = UsageEntry(
+            timestamp=datetime(2024, 1, 1, 12, 30, tzinfo=timezone.utc),
+            input_tokens=100,
+            output_tokens=50,
+            model="claude-3-haiku",
+        )
+
+        block = analyzer._create_new_block(entry)
+
+        expected_start = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+        expected_end = expected_start + timedelta(hours=168)
+
+        assert block.start_time == expected_start
+        assert block.end_time == expected_end
+
+    def test_entries_within_week_in_single_block(self) -> None:
+        """All entries within a 168h window stay in one block."""
+        analyzer = SessionAnalyzer(session_duration_hours=168)
+
+        base = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+        entries: List[UsageEntry] = [
+            UsageEntry(
+                timestamp=base + timedelta(hours=i * 24),
+                input_tokens=100,
+                output_tokens=50,
+                model="claude-3-haiku",
+            )
+            for i in range(7)  # One entry per day for 7 days
+        ]
+
+        blocks = analyzer.transform_to_blocks(entries)
+        non_gap = [b for b in blocks if not b.is_gap]
+
+        assert len(non_gap) == 1
+        assert len(non_gap[0].entries) == 7
+
+    def test_entries_spanning_two_weeks_create_two_blocks(self) -> None:
+        """Entries spanning more than 168h create separate blocks."""
+        analyzer = SessionAnalyzer(session_duration_hours=168)
+
+        base = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+        entries: List[UsageEntry] = [
+            UsageEntry(
+                timestamp=base,
+                input_tokens=100,
+                output_tokens=50,
+                model="claude-3-haiku",
+            ),
+            UsageEntry(
+                timestamp=base + timedelta(hours=200),  # Beyond 168h
+                input_tokens=200,
+                output_tokens=100,
+                model="claude-3-haiku",
+            ),
+        ]
+
+        blocks = analyzer.transform_to_blocks(entries)
+        non_gap = [b for b in blocks if not b.is_gap]
+
+        assert len(non_gap) == 2
