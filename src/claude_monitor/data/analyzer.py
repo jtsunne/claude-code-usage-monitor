@@ -12,6 +12,7 @@ from claude_monitor.core.models import (
     SessionBlock,
     TokenCounts,
     UsageEntry,
+    is_sonnet_model,
     normalize_model_name,
 )
 from claude_monitor.utils.time_utils import TimezoneHandler
@@ -163,6 +164,15 @@ class SessionAnalyzer:
         # Update aggregated cost (sum across all models)
         if entry.cost_usd:
             block.cost_usd += entry.cost_usd
+
+        # Sonnet token tracking
+        if is_sonnet_model(model):
+            block.sonnet_token_counts.input_tokens += entry.input_tokens
+            block.sonnet_token_counts.output_tokens += entry.output_tokens
+            block.sonnet_token_counts.cache_creation_tokens += (
+                entry.cache_creation_tokens
+            )
+            block.sonnet_token_counts.cache_read_tokens += entry.cache_read_tokens
 
         # Model tracking (prevent duplicates)
         if model and model not in block.models:

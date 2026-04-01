@@ -75,8 +75,8 @@
        - name: Create git tag
          run: |
            VERSION="${{ needs.check-version.outputs.version }}"
-           git config user.name "maciekdymarczyk"
-           git config user.email "maciek@roboblog.eu"
+           git config user.name "Denys Miasnychenko"
+           git config user.email "jtsunne@protonmail.com"
            git tag -a "v$VERSION" -m "Release v$VERSION"
            git push origin "v$VERSION"
 

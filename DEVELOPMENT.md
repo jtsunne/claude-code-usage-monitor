@@ -9,10 +9,12 @@ Current implementation status and planned features for Claude Code Usage Monitor
 #### 🔧 **Core Monitoring System**
 - **Real-time token monitoring** with configurable refresh rates (0.1-20 Hz)
 - **5-hour session tracking** with intelligent session block analysis
-- **Multi-plan support**: Pro (44k), Max5 (88k), Max20 (220k), Custom (P90-based)
+- **Multi-plan support**: Pro (44k), Max5 (88k), Max20 (220k), Team Premium (118k weekly), Team Standard (23k weekly), Custom (P90-based)
+- **Weekly session tracking** for team plans with 7-day rolling windows (168 hours)
 - **Advanced analytics** with burn rate calculations and usage projections
 - **Cost tracking** with model-specific pricing (Opus, Sonnet, Haiku)
 - **Cache token support** for creation and read tokens
+- **Dual progress bars** for Team Premium (All Models + Sonnet Only tracking)
 
 #### 🎨 **Rich Terminal UI**
 - **Adaptive color themes** with WCAG-compliant contrast ratios
@@ -183,7 +185,7 @@ Cross-platform monitoring with mobile apps and web interfaces for enterprise env
 #### **Quick Setup**
 ```bash
 # Clone the repository
-git clone https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor.git
+git clone https://github.com/jtsunne/claude-code-usage-monitor.git
 cd Claude-Code-Usage-Monitor
 
 # Install development dependencies with UV
@@ -314,10 +316,10 @@ uv run ruff format .
 ## 📞 **Developer Resources**
 
 ### 🔗 **Key Links**
-- **Repository**: [Claude-Code-Usage-Monitor](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor)
-- **Issues**: [GitHub Issues](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/discussions)
-- **Releases**: [GitHub Releases](https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases)
+- **Repository**: [Claude-Code-Usage-Monitor](https://github.com/jtsunne/claude-code-usage-monitor)
+- **Issues**: [GitHub Issues](https://github.com/jtsunne/claude-code-usage-monitor/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jtsunne/claude-code-usage-monitor/discussions)
+- **Releases**: [GitHub Releases](https://github.com/jtsunne/claude-code-usage-monitor/releases)
 
 ### 📧 **Contact & Support**
 - **Technical Questions**: Open GitHub issues with detailed context

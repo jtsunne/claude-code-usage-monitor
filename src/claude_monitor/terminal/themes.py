@@ -123,6 +123,8 @@ class AdaptiveColorScheme:
                 "plan.max5": "color(19)",  # Dark blue
                 "plan.max20": "color(17)",  # Deep blue
                 "plan.custom": "color(22)",  # Dark green
+                "plan.team_premium": "color(19)",  # Dark blue (premium)
+                "plan.team_standard": "color(22)",  # Dark green (standard)
             }
         )
 
@@ -180,6 +182,8 @@ class AdaptiveColorScheme:
                 "plan.max5": "color(111)",  # Light cyan
                 "plan.max20": "color(117)",  # Light blue
                 "plan.custom": "color(118)",  # Light green
+                "plan.team_premium": "color(111)",  # Light cyan (premium)
+                "plan.team_standard": "color(118)",  # Light green (standard)
             }
         )
 
@@ -236,6 +240,8 @@ class AdaptiveColorScheme:
                 "plan.max5": "cyan",  # Cyan
                 "plan.max20": "blue",  # Blue
                 "plan.custom": "green",  # Green
+                "plan.team_premium": "blue",  # Blue (premium)
+                "plan.team_standard": "green",  # Green (standard)
             }
         )
 

@@ -62,7 +62,7 @@ Add a new section at the top of `CHANGELOG.md`:
 ### Fixed
 - Description of fixes
 
-[1.0.9]: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/tag/v1.0.9
+[1.0.9]: https://github.com/jtsunne/claude-code-usage-monitor/releases/tag/v1.0.9
 ```
 
 ### 4. Commit Version Changes
@@ -101,7 +101,7 @@ ls -la dist/
 
 ### 7. Create GitHub Release
 
-1. Go to: https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases/new
+1. Go to: https://github.com/jtsunne/claude-code-usage-monitor/releases/new
 2. Choose tag: `v1.0.9`
 3. Release title: `Release v1.0.9`
 4. Copy the relevant section from CHANGELOG.md to the description

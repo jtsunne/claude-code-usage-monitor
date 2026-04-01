@@ -99,9 +99,11 @@ class Settings(BaseSettings):
         cli_implicit_flags=True,
     )
 
-    plan: Literal["pro", "max5", "max20", "custom"] = Field(
-        default="custom",
-        description="Plan type (pro, max5, max20, custom)",
+    plan: Literal["pro", "max5", "max20", "custom", "team_premium", "team_standard"] = (
+        Field(
+            default="custom",
+            description="Plan type (pro, max5, max20, custom, team_premium, team_standard)",
+        )
     )
 
     view: Literal["realtime", "daily", "monthly", "session"] = Field(
@@ -142,6 +144,18 @@ class Settings(BaseSettings):
         default=None, gt=0, description="Token limit for custom plan"
     )
 
+    weekly_all_models_limit: Optional[int] = Field(
+        default=None,
+        gt=0,
+        description="Weekly token limit for all models (team plans)",
+    )
+
+    weekly_sonnet_limit: Optional[int] = Field(
+        default=None,
+        gt=0,
+        description="Weekly token limit for Sonnet models (team plans)",
+    )
+
     refresh_rate: int = Field(
         default=10, ge=1, le=60, description="Refresh rate in seconds"
     )
@@ -176,7 +190,14 @@ class Settings(BaseSettings):
         """Validate and normalize plan value."""
         if isinstance(v, str):
             v_lower = v.lower()
-            valid_plans = ["pro", "max5", "max20", "custom"]
+            valid_plans = [
+                "pro",
+                "max5",
+                "max20",
+                "custom",
+                "team_premium",
+                "team_standard",
+            ]
             if v_lower in valid_plans:
                 return v_lower
             raise ValueError(
@@ -350,5 +371,7 @@ class Settings(BaseSettings):
         args.log_level = self.log_level
         args.log_file = str(self.log_file) if self.log_file else None
         args.version = self.version
+        args.weekly_all_models_limit = self.weekly_all_models_limit
+        args.weekly_sonnet_limit = self.weekly_sonnet_limit
 
         return args

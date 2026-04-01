@@ -75,7 +75,9 @@ class TestMonitoringOrchestratorInit:
             assert orchestrator._last_valid_data is None
             assert len(orchestrator._update_callbacks) == 0
 
-            mock_dm.assert_called_once_with(cache_ttl=5, data_path=None)
+            mock_dm.assert_called_once_with(
+                cache_ttl=5, data_path=None, session_duration_hours=5
+            )
             mock_sm.assert_called_once()
 
     def test_init_with_custom_params(self) -> None:
@@ -89,7 +91,9 @@ class TestMonitoringOrchestratorInit:
             )
 
             assert orchestrator.update_interval == 5
-            mock_dm.assert_called_once_with(cache_ttl=5, data_path="/custom/path")
+            mock_dm.assert_called_once_with(
+                cache_ttl=5, data_path="/custom/path", session_duration_hours=5
+            )
 
 
 class TestMonitoringOrchestratorLifecycle:

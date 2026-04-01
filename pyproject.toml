@@ -74,13 +74,13 @@ test = [
 
 
 [project.urls]
-homepage = "https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor"
-repository = "https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor.git"
-documentation = "https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor#readme"
-issues = "https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/issues"
-changelog = "https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/blob/main/CHANGELOG.md"
-"Release Notes" = "https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/releases"
-"Discussions" = "https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor/discussions"
+homepage = "https://github.com/jtsunne/claude-code-usage-monitor"
+repository = "https://github.com/jtsunne/claude-code-usage-monitor.git"
+documentation = "https://github.com/jtsunne/claude-code-usage-monitor#readme"
+issues = "https://github.com/jtsunne/claude-code-usage-monitor/issues"
+changelog = "https://github.com/jtsunne/claude-code-usage-monitor/blob/main/CHANGELOG.md"
+"Release Notes" = "https://github.com/jtsunne/claude-code-usage-monitor/releases"
+"Discussions" = "https://github.com/jtsunne/claude-code-usage-monitor/discussions"
 
 [project.scripts]
 claude-monitor = "claude_monitor.__main__:main"

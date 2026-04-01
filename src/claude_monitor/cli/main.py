@@ -135,6 +135,7 @@ def _run_monitoring(args: argparse.Namespace) -> None:
             return
 
         token_limit: int = _get_initial_token_limit(args, str(data_path))
+        session_duration_hours: int = Plans.get_session_duration_hours(args.plan)
 
         display_controller = DisplayController()
         display_controller.live_manager._console = console
@@ -168,6 +169,7 @@ def _run_monitoring(args: argparse.Namespace) -> None:
                     args.refresh_rate if hasattr(args, "refresh_rate") else 10
                 ),
                 data_path=str(data_path),
+                session_duration_hours=session_duration_hours,
             )
             orchestrator.set_args(args)
 
@@ -267,6 +269,24 @@ def _get_initial_token_limit(
     logger = logging.getLogger(__name__)
     plan: str = getattr(args, "plan", PlanType.PRO.value)
 
+    # For team plans, use static limits from PLAN_LIMITS (no P90 calculation)
+    if Plans.is_team_plan(plan):
+        weekly_override = getattr(args, "weekly_all_models_limit", None)
+        if weekly_override:
+            print_themed(
+                f"Using custom weekly token limit: {weekly_override:,} tokens",
+                style="info",
+            )
+            return int(weekly_override)
+        token_limit: int = get_token_limit(plan)
+        cfg = Plans.get_plan_by_name(plan)
+        display_name = cfg.display_name if cfg else plan
+        print_themed(
+            f"{display_name} weekly limit: {token_limit:,} tokens",
+            style="info",
+        )
+        return token_limit
+
     # For custom plans, check if custom_limit_tokens is provided first
     if plan == "custom":
         # If custom_limit_tokens is explicitly set, use it
@@ -292,7 +312,7 @@ def _get_initial_token_limit(
 
             if usage_data and "blocks" in usage_data:
                 blocks: List[Dict[str, Any]] = usage_data["blocks"]
-                token_limit: int = get_token_limit(plan, blocks)
+                token_limit = get_token_limit(plan, blocks)
 
                 print_themed(
                     f"P90 session limit calculated: {token_limit:,} tokens",
